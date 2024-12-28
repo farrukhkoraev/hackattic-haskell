@@ -21,9 +21,7 @@ diffObj o1 o2 = foldr run KM.empty (KM.keys o1 ++ KM.keys o2)
 diff :: KM.Key -> Maybe J.Value -> Maybe J.Value -> ResultMap -> ResultMap
 -- check diff in nested objects
 diff k (Just (J.Object o1)) (Just (J.Object o2)) res
-  | o1 /= o2 =
-      let r = diffObj o1 o2
-       in KM.insert k [(M, RMap r)] res
+  | o1 /= o2 = KM.insert k [(M, RMap (diffObj o1 o2))] res
   | otherwise = KM.insert k [(U, RVal $ J.Object o1)] res
 -- key absent from 2nd json
 diff k (Just v1) Nothing r = KM.insert k [(R, RVal v1)] r
