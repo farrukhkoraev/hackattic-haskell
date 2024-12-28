@@ -1,9 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Diff (diffObj, toString) where
+module Diff (runDiff, diffObj) where
 
 import qualified Data.Aeson as J
 import qualified Data.Aeson.KeyMap as KM
+import qualified Data.ByteString.Lazy as L
 
 data Status = A | U | R | M deriving (Show) -- A -added, U-unchanged, R-removed, M-modified
 
@@ -34,6 +35,19 @@ diff k (Just v1) (Just v2) r
   | otherwise = KM.insert k [(U, RVal v1)] r
 --- unreachable case in theory ))
 diff _ _ _ r = r
+
+runDiff :: FilePath -> FilePath -> IO ()
+runDiff f1 f2 = do
+  in1 <- L.readFile f1
+  in2 <- L.readFile f2
+  case J.decode in1 of
+    Just (J.Object v1) ->
+      case J.decode in2 of
+        Just (J.Object v2) ->
+          let res = diffObj v1 v2
+           in print $ toString res
+        _ -> print ("Failed to parse in2" :: String)
+    _ -> print ("Failed to parse in1" :: String)
 
 -- Printing
 toStringVal :: J.Value -> String
